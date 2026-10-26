@@ -1,16 +1,112 @@
----
+﻿---
+import Layout from "../layouts/Layout.astro";
+import ProductoCard from "../components/ProductoCard.astro";
+
+interface Producto {
+  id: number;
+  title: string;
+  price: number;
+  category: string;
+  rating: number;
+  thumbnail: string;
+}
+
+let productos: Producto[] = [];
+let mensajeError = "";
+
+try {
+  const respuesta = await fetch("https://dummyjson.com/products?limit=12");
+
+  if (!respuesta.ok) {
+    throw new Error(`Error HTTP: ${respuesta.status}`);
+  }
+
+  const datos = await respuesta.json();
+  productos = datos.products ?? [];
+} catch (error) {
+  console.error("Error al consultar la API:", error);
+  mensajeError = "No fue posible cargar los productos.";
+}
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Layout title="Éclat — belleza y cuidado">
+  <div class="anuncio">UN MOMENTO PARA TI <span>·</span> DESCUBRE TU PRÓXIMO FAVORITO</div>
+
+  <header class="barra-navegacion">
+    <a class="marca" href="#inicio" aria-label="Éclat, inicio">éclat<span>.</span></a>
+    <nav aria-label="Navegación principal">
+      <a href="#coleccion">Colección</a>
+      <a href="#busqueda">Encuentra tu favorito</a>
+    </nav>
+    <a class="nav-cta" href="#coleccion">Descubrir <span aria-hidden="true">↗</span></a>
+  </header>
+
+  <main id="inicio">
+    <section class="hero" aria-labelledby="titulo-hero">
+      <div class="hero-foto" role="img" aria-label="Retrato editorial de belleza con maquillaje natural"></div>
+      <div class="hero-velo"></div>
+      <div class="hero-copy">
+        <p class="eyebrow"><span></span> BELLEZA A TU MANERA</p>
+        <h1 id="titulo-hero">Un gesto.<br />Toda tu <em>luz.</em></h1>
+        <p class="hero-descripcion">Pequeños rituales, grandes momentos. Encuentra inspiración para tu rutina de todos los días.</p>
+        <a class="boton-hero" href="#coleccion">Explorar la colección <span aria-hidden="true">→</span></a>
+      </div>
+      <p class="hero-indice">01 <span>/</span> BELLEZA ESENCIAL</p>
+    </section>
+
+    <section id="coleccion" class="contenedor" aria-labelledby="titulo-coleccion">
+      <div class="encabezado-coleccion">
+        <div class="titulo-bloque">
+          <p class="eyebrow eyebrow-oscuro"><span></span> SELECCIÓN ECLAT</p>
+          <h2 id="titulo-coleccion">Tus nuevos <em>favoritos</em></h2>
+          <p class="coleccion-descripcion">Piezas elegidas para acompañarte en cada ritual.</p>
+        </div>
+        <div id="busqueda" class="busqueda">
+          <label for="buscador">BUSCAR EN LA COLECCIÓN</label>
+          <div class="campo-busqueda">
+            <input id="buscador" type="search" placeholder="Escribe un nombre..." />
+            <span aria-hidden="true">⌕</span>
+          </div>
+        </div>
+      </div>
+
+      {mensajeError && <p class="mensaje" role="alert">{mensajeError}</p>}
+
+      {productos.length > 0 ? (
+        <section class="grid-productos" aria-label="Lista de productos">
+          {productos.map((producto) => (
+            <ProductoCard
+              title={producto.title}
+              price={producto.price}
+              category={producto.category}
+              rating={producto.rating}
+              thumbnail={producto.thumbnail}
+            />
+          ))}
+        </section>
+      ) : !mensajeError ? (
+        <p class="mensaje">La colección estará disponible muy pronto.</p>
+      ) : null}
+    </section>
+  </main>
+
+  <footer class="pie" id="esencia">
+    <a class="marca marca-pie" href="#inicio">éclat<span>.</span></a>
+    <p>La belleza de sentirte tú.</p>
+    <a class="volver-arriba" href="#inicio">VOLVER ARRIBA ↑</a>
+  </footer>
+</Layout>
+
+<script>
+  const buscador = document.querySelector<HTMLInputElement>("#buscador");
+  const productos = document.querySelectorAll<HTMLElement>(".producto");
+
+  buscador?.addEventListener("input", () => {
+    const texto = buscador.value.toLowerCase().trim();
+
+    productos.forEach((producto) => {
+      const nombre = producto.dataset.title ?? "";
+      producto.hidden = !nombre.includes(texto);
+    });
+  });
+</script>
